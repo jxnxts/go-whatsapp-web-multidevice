@@ -113,6 +113,8 @@ func TestSchemas(t *testing.T) {
 		{"newsletter directory ok", newsletterSchema, `{"action":"directory","view":"TRENDING","country_codes":["BR"]}`, false},
 		{"newsletter directory bad view", newsletterSchema, `{"action":"directory","view":"HOT"}`, true},
 		{"newsletter messages count too high", newsletterSchema, `{"action":"messages","newsletter_id":"1@newsletter","count":101}`, true},
+		{"newsletter similar ok", newsletterSchema, `{"action":"similar","newsletter_id":"1@newsletter","country_codes":["BR"]}`, false},
+		{"newsletter similar missing id", newsletterSchema, `{"action":"similar"}`, true},
 		{"newsletter live list ok", newsletterSchema, `{"action":"live_updates_list"}`, false},
 		{"newsletter live subscribe missing id", newsletterSchema, `{"action":"live_updates_subscribe"}`, true},
 		// ---- whatsapp_group ----

@@ -20,6 +20,7 @@ func InitRestNewsletter(app fiber.Router, service domainNewsletter.INewsletterUs
 	app.Post("/newsletter/unfollow", rest.Unfollow)
 	app.Get("/newsletter/info", rest.GetInfo)
 	app.Get("/newsletter/directory", rest.Directory)
+	app.Get("/newsletter/similar", rest.Similar)
 	app.Get("/newsletter/messages", rest.GetMessages)
 	app.Get("/newsletter/message-updates", rest.GetMessageUpdates)
 	app.Get("/newsletter/live-updates", rest.ListLiveUpdates)
@@ -72,6 +73,22 @@ func (controller *Newsletter) Directory(c fiber.Ctx) error {
 		Status:  200,
 		Code:    "SUCCESS",
 		Message: "Success search newsletter directory",
+		Results: response,
+	})
+}
+
+func (controller *Newsletter) Similar(c fiber.Ctx) error {
+	var request domainNewsletter.SimilarRequest
+	err := c.Bind().Query(&request)
+	utils.PanicIfNeeded(err)
+
+	response, err := controller.Service.Similar(whatsapp.ContextWithDevice(c.Context(), getDeviceFromCtx(c)), request)
+	utils.PanicIfNeeded(err)
+
+	return c.JSON(utils.ResponseData{
+		Status:  200,
+		Code:    "SUCCESS",
+		Message: "Success get similar newsletters",
 		Results: response,
 	})
 }

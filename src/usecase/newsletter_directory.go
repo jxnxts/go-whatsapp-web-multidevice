@@ -20,6 +20,7 @@ import (
 const (
 	queryNewsletterDirectoryList   = "26125047313831973"
 	queryNewsletterDirectorySearch = "26301059626252132"
+	querySimilarNewsletters        = "26217043484590756"
 	// Same query whatsmeow's GetNewsletterInfo uses, sent without viewer metadata.
 	queryFetchNewsletter = "6563316087068696"
 )
@@ -40,6 +41,39 @@ func (service serviceNewsletter) Directory(ctx context.Context, request domainNe
 	utils.MustLogin(client)
 
 	return fetchNewsletterDirectory(ctx, client.DangerousInternals(), request)
+}
+
+func (service serviceNewsletter) Similar(ctx context.Context, request domainNewsletter.SimilarRequest) (response domainNewsletter.DirectoryResponse, err error) {
+	if err = validations.ValidateSimilarNewsletters(ctx, &request); err != nil {
+		return response, err
+	}
+
+	client := whatsapp.ClientFromContext(ctx)
+	if client == nil {
+		return response, pkgError.ErrWaCLI
+	}
+	utils.MustLogin(client)
+
+	return fetchSimilarNewsletters(ctx, client.DangerousInternals(), request)
+}
+
+func fetchSimilarNewsletters(ctx context.Context, client newsletterMexClient, request domainNewsletter.SimilarRequest) (response domainNewsletter.DirectoryResponse, err error) {
+	countryCodes := request.CountryCodes
+	if countryCodes == nil {
+		countryCodes = []string{}
+	}
+	data, err := client.SendMexIQ(ctx, querySimilarNewsletters, map[string]any{
+		"input": map[string]any{
+			"newsletter_id": request.NewsletterID,
+			"limit":         request.Limit,
+			"country_codes": countryCodes,
+		},
+		"fetch_status_metadata": false,
+	})
+	if err != nil {
+		return response, fmt.Errorf("failed to query similar newsletters: %w", err)
+	}
+	return parseNewsletterDirectory(data)
 }
 
 func fetchNewsletterDirectory(ctx context.Context, client newsletterMexClient, request domainNewsletter.DirectoryRequest) (response domainNewsletter.DirectoryResponse, err error) {

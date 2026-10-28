@@ -189,3 +189,22 @@ func normalizeUpperList(values []string) []string {
 	}
 	return result
 }
+
+func ValidateSimilarNewsletters(ctx context.Context, request *domainNewsletter.SimilarRequest) error {
+	if request.Limit == 0 {
+		request.Limit = 10
+	}
+	request.CountryCodes = normalizeUpperList(request.CountryCodes)
+
+	err := validation.ValidateStructWithContext(ctx, request,
+		validation.Field(&request.NewsletterID, validation.Required, validation.By(validateNewsletterJIDShape)),
+		validation.Field(&request.Limit, validation.Min(1), validation.Max(50)),
+		validation.Field(&request.CountryCodes, validation.Each(validation.Length(2, 2))),
+	)
+
+	if err != nil {
+		return pkgError.ValidationError(err.Error())
+	}
+
+	return nil
+}

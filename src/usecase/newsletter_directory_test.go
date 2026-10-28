@@ -89,3 +89,20 @@ func TestFetchNewsletterDirectoryEmptyAndErrors(t *testing.T) {
 	_, err = fetchNewsletterDirectory(context.Background(), client, domainNewsletter.DirectoryRequest{View: "NEW", Limit: 5})
 	require.ErrorContains(t, err, "graphql error")
 }
+
+func TestFetchSimilarNewsletters(t *testing.T) {
+	client := &fakeMexClient{response: json.RawMessage(`{"xwa2_newsletters_similar":{"result":[
+		{"id":"120363155952654874@newsletter","state":{"type":"active"},"thread_metadata":{"name":{"text":"g1 MG"},"verification":"verified"}}]}}`)}
+
+	response, err := fetchSimilarNewsletters(context.Background(), client, domainNewsletter.SimilarRequest{
+		NewsletterID: "120363174510778422@newsletter", Limit: 5,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, querySimilarNewsletters, client.queryID)
+	input := client.variables.(map[string]any)["input"].(map[string]any)
+	assert.Equal(t, "120363174510778422@newsletter", input["newsletter_id"])
+	assert.Equal(t, []string{}, input["country_codes"])
+	require.Len(t, response.Data, 1)
+	assert.Equal(t, "g1 MG", response.Data[0].ThreadMeta.Name.Text)
+	assert.False(t, response.HasMore)
+}

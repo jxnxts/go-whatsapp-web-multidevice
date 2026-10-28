@@ -22,7 +22,7 @@ func InitMcpNewsletter(newsletterService domainNewsletter.INewsletterUsecase, re
 
 func (h *NewsletterHandler) AddNewsletterTools(mcpServer *server.MCPServer) {
 	tool := mcpg.NewTool("whatsapp_newsletter",
-		mcpg.WithDescription("WhatsApp Channels (newsletters): follow, unfollow, info (by JID or invite link, invite works without following), directory (search/browse public channels), messages (history with view/forward/reaction counts, paginate with before), message_updates (counters only), live_updates_subscribe/live_updates_unsubscribe/live_updates_list (auto-renewed live counter updates delivered as newsletter.message webhooks)."),
+		mcpg.WithDescription("WhatsApp Channels (newsletters): follow, unfollow, info (by JID or invite link, invite works without following), directory (search/browse public channels), similar (channels similar to a given one), messages (history with view/forward/reaction counts, paginate with before), message_updates (counters only), live_updates_subscribe/live_updates_unsubscribe/live_updates_list (auto-renewed live counter updates delivered as newsletter.message webhooks)."),
 		mcpg.WithTitleAnnotation("Channels"),
 		mcpg.WithReadOnlyHintAnnotation(false),
 		mcpg.WithDestructiveHintAnnotation(false),
@@ -76,6 +76,16 @@ func (h *NewsletterHandler) handleNewsletter(ctx context.Context, request mcpg.C
 			Categories:   request.GetStringSlice("categories", nil),
 			Limit:        request.GetInt("limit", 0),
 			Cursor:       request.GetString("cursor", ""),
+		})
+		if err != nil {
+			return mcpg.NewToolResultError(err.Error()), nil
+		}
+		return mcpg.NewToolResultStructuredOnly(resp), nil
+	case "similar":
+		resp, err := h.newsletterService.Similar(ctx, domainNewsletter.SimilarRequest{
+			NewsletterID: newsletterID,
+			CountryCodes: request.GetStringSlice("country_codes", nil),
+			Limit:        request.GetInt("limit", 0),
 		})
 		if err != nil {
 			return mcpg.NewToolResultError(err.Error()), nil

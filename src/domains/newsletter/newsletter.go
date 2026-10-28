@@ -16,6 +16,7 @@ type INewsletterUsecase interface {
 	UnsubscribeLiveUpdates(ctx context.Context, request LiveUpdatesRequest) (err error)
 	ListLiveUpdates(ctx context.Context) (response ListLiveUpdatesResponse, err error)
 	Directory(ctx context.Context, request DirectoryRequest) (response DirectoryResponse, err error)
+	Similar(ctx context.Context, request SimilarRequest) (response DirectoryResponse, err error)
 	DownloadMedia(ctx context.Context, request DownloadMediaRequest) (response DownloadMediaResponse, err error)
 }
 
@@ -120,6 +121,16 @@ type DirectoryResponse struct {
 	Data       []types.NewsletterMetadata `json:"data"`
 	NextCursor string                     `json:"next_cursor,omitempty"`
 	HasMore    bool                       `json:"has_more"`
+}
+
+// SimilarRequest lists channels WhatsApp considers similar to a given one
+// (the "Similar channels" carousel of the official clients). Following the
+// channel is not required. Results are not paginated.
+type SimilarRequest struct {
+	NewsletterID string   `json:"newsletter_id" query:"newsletter_id"`
+	CountryCodes []string `json:"country_codes" query:"country_codes"`
+	// Limit caps how many channels are returned. Defaults to 10, capped at 50.
+	Limit int `json:"limit" query:"limit"`
 }
 
 type DownloadMediaRequest struct {

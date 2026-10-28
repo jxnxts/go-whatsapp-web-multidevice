@@ -272,3 +272,16 @@ func TestValidateNewsletterDirectory(t *testing.T) {
 	request = domainNewsletter.DirectoryRequest{SearchText: "news", Categories: []string{"POLITICS"}}
 	assert.Error(t, ValidateNewsletterDirectory(context.Background(), &request))
 }
+
+func TestValidateSimilarNewsletters(t *testing.T) {
+	request := domainNewsletter.SimilarRequest{NewsletterID: "120363123456789@newsletter", CountryCodes: []string{"br"}}
+	assert.NoError(t, ValidateSimilarNewsletters(context.Background(), &request))
+	assert.Equal(t, 10, request.Limit)
+	assert.Equal(t, []string{"BR"}, request.CountryCodes)
+
+	request = domainNewsletter.SimilarRequest{}
+	assert.Equal(t, pkgError.ValidationError("newsletter_id: cannot be blank."), ValidateSimilarNewsletters(context.Background(), &request))
+
+	request = domainNewsletter.SimilarRequest{NewsletterID: "120363123456789@newsletter", Limit: 51}
+	assert.Equal(t, pkgError.ValidationError("limit: must be no greater than 50."), ValidateSimilarNewsletters(context.Background(), &request))
+}
