@@ -5,7 +5,9 @@ import (
 	"testing"
 
 	domainChatStorage "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/chatstorage"
+	"github.com/stretchr/testify/assert"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -831,4 +833,34 @@ func TestExtractContextInfoInteractiveMessage(t *testing.T) {
 			t.Fatalf("expected nil ContextInfo, got %+v", ci)
 		}
 	})
+}
+
+func TestExtractForwardedNewsletter(t *testing.T) {
+	forwarded := &events.Message{Message: &waE2E.Message{
+		ExtendedTextMessage: &waE2E.ExtendedTextMessage{
+			Text: proto.String("news"),
+			ContextInfo: &waE2E.ContextInfo{
+				IsForwarded: proto.Bool(true),
+				ForwardedNewsletterMessageInfo: &waE2E.ContextInfo_ForwardedNewsletterMessageInfo{
+					NewsletterJID:   proto.String("120363123456789@newsletter"),
+					NewsletterName:  proto.String("Daily News"),
+					ServerMessageID: proto.Int32(9813),
+				},
+			},
+		},
+	}}
+	assert.Equal(t, map[string]any{
+		"newsletter_id":   "120363123456789@newsletter",
+		"newsletter_name": "Daily News",
+		"server_id":       int32(9813),
+	}, ExtractForwardedNewsletter(forwarded))
+
+	plainForward := &events.Message{Message: &waE2E.Message{
+		ExtendedTextMessage: &waE2E.ExtendedTextMessage{
+			Text:        proto.String("hi"),
+			ContextInfo: &waE2E.ContextInfo{IsForwarded: proto.Bool(true)},
+		},
+	}}
+	assert.Nil(t, ExtractForwardedNewsletter(plainForward))
+	assert.Nil(t, ExtractForwardedNewsletter(&events.Message{Message: &waE2E.Message{Conversation: proto.String("hi")}}))
 }

@@ -341,6 +341,9 @@ func buildOptionalFields(ctx context.Context, client *whatsmeow.Client, evt *eve
 	if utils.BuildForwarded(evt) {
 		payload["forwarded"] = true
 	}
+	if source := utils.ExtractForwardedNewsletter(evt); source != nil {
+		payload["forwarded_newsletter"] = source
+	}
 
 	if referral := utils.ExtractExternalAdReply(msg); referral != nil {
 		payload["referral"] = referral

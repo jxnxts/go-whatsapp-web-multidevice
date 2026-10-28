@@ -1184,6 +1184,29 @@ func BuildForwarded(evt *events.Message) bool {
 	return false
 }
 
+// ExtractForwardedNewsletter returns the source channel of a message forwarded
+// from a WhatsApp channel (newsletter), or nil when the message did not come
+// from one.
+func ExtractForwardedNewsletter(evt *events.Message) map[string]any {
+	ci := ExtractContextInfo(UnwrapMessage(evt.Message))
+	if ci == nil {
+		return nil
+	}
+	info := ci.GetForwardedNewsletterMessageInfo()
+	if info == nil || info.GetNewsletterJID() == "" {
+		return nil
+	}
+
+	source := map[string]any{"newsletter_id": info.GetNewsletterJID()}
+	if name := info.GetNewsletterName(); name != "" {
+		source["newsletter_name"] = name
+	}
+	if serverID := info.GetServerMessageID(); serverID != 0 {
+		source["server_id"] = serverID
+	}
+	return source
+}
+
 // ExtractExternalAdReply extracts Meta Ads referral/attribution metadata from
 // incoming Click-to-WhatsApp ad messages. Returns nil when no ad data is present.
 func ExtractExternalAdReply(msg *waE2E.Message) map[string]any {

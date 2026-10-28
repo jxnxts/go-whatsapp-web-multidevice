@@ -1504,6 +1504,28 @@ When a message is edited, the webhook includes the original message ID to track 
 }
 ```
 
+When the message was forwarded from a WhatsApp channel, `forwarded_newsletter` identifies the source channel and post:
+
+```json
+{
+  "event": "message",
+  "device_id": "628987654321@s.whatsapp.net",
+  "payload": {
+    "id": "3EB0C127D7BACC83D6B5",
+    "chat_id": "120363402106XXXXX@g.us",
+    "from": "628123456789@s.whatsapp.net",
+    "timestamp": "2023-10-15T11:50:00Z",
+    "body": "Breaking news from the channel",
+    "forwarded": true,
+    "forwarded_newsletter": {
+      "newsletter_id": "120363123456789@newsletter",
+      "newsletter_name": "Daily News",
+      "server_id": 9813
+    }
+  }
+}
+```
+
 ### Meta Ads Referral (Click-to-WhatsApp)
 
 When a conversation starts from a Meta Click-to-WhatsApp ad, the first inbound message includes ad attribution metadata in the `referral` field. This is extracted from the WhatsApp protocol's `contextInfo.externalAdReply`.
